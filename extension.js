@@ -11,12 +11,13 @@ const configuration = new Configuration({
   apiKey: vscode.workspace.getConfiguration("chatGPT").get("apiKey"),
 });
 
-const messages = [{ role: "system", content: "You are a helpful assistant." }];
-
 const openai = new OpenAIApi(configuration);
 
+// System message primes GPT with the context for how it should reply
+const messages = [{ role: "system", content: "You are a helpful assistant." }];
+
 function activate(context) {
-  let showChatPeanel = vscode.commands.registerCommand(
+  let showChatPanel = vscode.commands.registerCommand(
     "code-gpt.showChatPanel",
     function () {
       const panel = vscode.window.createWebviewPanel(
@@ -30,17 +31,19 @@ function activate(context) {
 
       panel.webview.html = getWebviewContent(panel.webview);
 
+      // Panel listeners:
       panel.webview.onDidReceiveMessage(
         async (message) => {
-          if (message.type === "chatMessage") {
-            // Process the chat message and get a response
-            const response = await callGPT(message.meesage.content);
-
-            // Send the response back to the webview
-            panel.webview.postMessage({
-              type: "chatResponse",
-              text: response,
-            });
+          switch (message.command) {
+            case "callGPT":
+              const response = await callGPT(message.input);
+              panel.webview.postMessage({
+                command: "gptResponse",
+                response: response,
+              });
+              console.log(response);
+              break;
+            // ... other message handlers ...
           }
         },
         undefined,
@@ -49,17 +52,10 @@ function activate(context) {
     }
   );
 
-  context.subscriptions.push(showChatPeanel);
-
-  let startChat = vscode.commands.registerCommand(
-    "code-gpt.startChat",
-    function () {
-      callGPT();
-    }
-  );
-
-  context.subscriptions.push(startChat);
+  context.subscriptions.push(showChatPanel);
 }
+
+// Submits API call to GPT-3.5
 
 async function callGPT(input) {
   if (input) {
@@ -77,7 +73,7 @@ async function callGPT(input) {
     messages.push({ role: "assistant", content: assistant_reply });
   }
 
-  return messages[-1];
+  return assistant_reply;
 }
 
 function getWebviewContent(webview) {
@@ -91,7 +87,6 @@ function getWebviewContent(webview) {
   return HTMLContent;
 }
 
-// This method is called when your extension is deactivated
 function deactivate() {}
 
 module.exports = {
