@@ -30,14 +30,27 @@ function activate(context) {
 }
 
 async function callGPT() {
+
+	const messages = [
+		{role: "system", content: "You are a helpful assistant."},
+		{role: "user", content: "Hi"}
+	];
+
+	const input = await vscode.window.showInputBox({
+		prompt: 'Enter a message for GPT-3.5',
+		placeHolder: 'Type something...'
+	  });
+
+	if (input) {
+		messages.push({role: "user", content: input});
+	}
+
 	const completion = await openai.createChatCompletion({
 		model: "gpt-3.5-turbo",
-		messages: [
-			{role: "system", content: "You are a helpful assistant"},
-			{role: "user", content: "Say this is a test message"}
-		]
+		messages: messages
 	  });
-	  return completion.data.choices[0].message;
+
+	return completion.data.choices[0].message;
 }  
 
 // This method is called when your extension is deactivated
