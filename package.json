@@ -18,8 +18,12 @@
         "title": "Hello World"
       },
       {
-        "command": "code-gpt.sendPrompt",
+        "command": "code-gpt.startChat",
         "title": "Test GPT Link"
+      },
+      {
+        "command": "code-gpt.showChatPanel",
+        "title": "Show Chat Panel"
       }
     ],
     "configuration": [
@@ -52,6 +56,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "jquery": "^3.6.4",
     "openai": "^3.2.1"
   }
 }

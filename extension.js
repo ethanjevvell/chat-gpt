@@ -1,62 +1,100 @@
-
 /**
  * @param {vscode.ExtensionContext} context
  */
 
-const vscode = require('vscode');
+const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: vscode.workspace.getConfiguration('chatGPT').get('apiKey')
+  apiKey: vscode.workspace.getConfiguration("chatGPT").get("apiKey"),
 });
+
+const messages = [{ role: "system", content: "You are a helpful assistant." }];
 
 const openai = new OpenAIApi(configuration);
 
 function activate(context) {
+  let showChatPeanel = vscode.commands.registerCommand(
+    "code-gpt.showChatPanel",
+    function () {
+      const panel = vscode.window.createWebviewPanel(
+        "code-GPT",
+        "Chat with GPT-3.5",
+        vscode.ViewColumn.One,
+        {
+          enableScripts: true,
+        }
+      );
 
-	let helloWorld = vscode.commands.registerCommand('code-gpt.helloWorld', function () {
-		vscode.window.showInformationMessage('Hello World from Code-GPT!');
-	});
+      panel.webview.html = getWebviewContent(panel.webview);
 
-	context.subscriptions.push(helloWorld);
+      panel.webview.onDidReceiveMessage(
+        async (message) => {
+          if (message.type === "chatMessage") {
+            // Process the chat message and get a response
+            const response = await callGPT(message.meesage.content);
 
-	let sendPrompt = vscode.commands.registerCommand('code-gpt.sendPrompt', async function () {
-		const result = await callGPT();
-		console.log(result);
-	});
+            // Send the response back to the webview
+            panel.webview.postMessage({
+              type: "chatResponse",
+              text: response,
+            });
+          }
+        },
+        undefined,
+        context.subscriptions
+      );
+    }
+  );
 
-	context.subscriptions.push(sendPrompt);
+  context.subscriptions.push(showChatPeanel);
 
+  let startChat = vscode.commands.registerCommand(
+    "code-gpt.startChat",
+    function () {
+      callGPT();
+    }
+  );
+
+  context.subscriptions.push(startChat);
 }
 
-async function callGPT() {
+async function callGPT(input) {
+  if (input) {
+    messages.push({ role: "user", content: input });
+  }
 
-	const messages = [
-		{role: "system", content: "You are a helpful assistant."},
-		{role: "user", content: "Hi"}
-	];
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: messages,
+  });
 
-	const input = await vscode.window.showInputBox({
-		prompt: 'Enter a message for GPT-3.5',
-		placeHolder: 'Type something...'
-	  });
+  const assistant_reply = completion.data.choices[0].message.content;
 
-	if (input) {
-		messages.push({role: "user", content: input});
-	}
+  if (completion) {
+    messages.push({ role: "assistant", content: assistant_reply });
+  }
 
-	const completion = await openai.createChatCompletion({
-		model: "gpt-3.5-turbo",
-		messages: messages
-	  });
+  return messages[-1];
+}
 
-	return completion.data.choices[0].message;
-}  
+function getWebviewContent(webview) {
+  const chatHTMLPath = path.join(__dirname, "webview", "chat.html");
+  const handlersPath = path.join(__dirname, "src", "handlers.js");
+  const handlersURI = webview.asWebviewUri(vscode.Uri.file(handlersPath));
+
+  let HTMLContent = fs.readFileSync(chatHTMLPath, "utf8");
+  HTMLContent = HTMLContent.replace("%handlers%", handlersURI);
+
+  return HTMLContent;
+}
 
 // This method is called when your extension is deactivated
 function deactivate() {}
 
 module.exports = {
-	activate,
-	deactivate
-}
+  activate,
+  deactivate,
+};

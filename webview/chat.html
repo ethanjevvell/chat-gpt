@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline' https:; style-src 'unsafe-inline' https:;"
+    />
+    <title>Chat</title>
+  </head>
+  <body>
+    <h1></h1>
+    <div id="messages">
+      <!-- Messages with GPT go here -->
+    </div>
+
+    <input id="inputMessage" type="text" placeholder="Type your message" />
+
+    <button id="sendButton">Send</button>
+    <script src="%handlers%"></script>
+  </body>
+</html>
