@@ -8,16 +8,26 @@
       content="default-src 'none'; script-src 'unsafe-inline' https:; style-src 'unsafe-inline' https:;"
     />
     <title>Chat</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="%styles%" />
   </head>
   <body>
-    <h1></h1>
-    <div id="messages">
-      <!-- Messages with GPT go here -->
+    <div id="chat">
+      <div id="chat-messages">
+        <!-- Messages with GPT go here -->
+      </div>
+      <input
+        id="inputMessage"
+        class="message"
+        type="textarea"
+        placeholder="Type your message"
+      />
     </div>
 
-    <input id="inputMessage" type="textarea" placeholder="Type your message" />
-
-    <button id="sendButton">Send</button>
     <script src="%handlers%"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   </body>
 </html>

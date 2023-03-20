@@ -17,18 +17,18 @@ const openai = new OpenAIApi(configuration);
 const messages = [{ role: "system", content: "You are a helpful assistant." }];
 
 function activate(context) {
+  const panel = vscode.window.createWebviewPanel(
+    "code-GPT",
+    "Chat with GPT-3.5",
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true,
+    }
+  );
+
   let showChatPanel = vscode.commands.registerCommand(
     "code-gpt.showChatPanel",
     function () {
-      const panel = vscode.window.createWebviewPanel(
-        "code-GPT",
-        "Chat with GPT-3.5",
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-        }
-      );
-
       panel.webview.html = getWebviewContent(panel.webview);
 
       // Panel listeners:
@@ -43,7 +43,6 @@ function activate(context) {
               });
               console.log(response);
               break;
-            // ... other message handlers ...
           }
         },
         undefined,
@@ -51,8 +50,14 @@ function activate(context) {
       );
     }
   );
-
   context.subscriptions.push(showChatPanel);
+
+  let toggleDarkMode = vscode.commands.registerCommand(
+    "code-gpt.toggleDarkMode",
+    function () {
+      panel.webview.postMessage({ command: "toggleDarkMode" });
+    }
+  );
 }
 
 // Submits API call to GPT-3.5
@@ -79,10 +84,14 @@ async function callGPT(input) {
 function getWebviewContent(webview) {
   const chatHTMLPath = path.join(__dirname, "webview", "chat.html");
   const handlersPath = path.join(__dirname, "src", "handlers.js");
+  const stylesPath = path.join(__dirname, "src", "styles", "chat.css");
+
   const handlersURI = webview.asWebviewUri(vscode.Uri.file(handlersPath));
+  const stylesURI = webview.asWebviewUri(vscode.Uri.file(stylesPath));
 
   let HTMLContent = fs.readFileSync(chatHTMLPath, "utf8");
   HTMLContent = HTMLContent.replace("%handlers%", handlersURI);
+  HTMLContent = HTMLContent.replace("%styles%", stylesURI);
 
   return HTMLContent;
 }

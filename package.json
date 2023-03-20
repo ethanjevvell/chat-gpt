@@ -12,18 +12,24 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
+
     "commands": [
-      {
-        "command": "code-gpt.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "code-gpt.startChat",
-        "title": "Test GPT Link"
-      },
+
       {
         "command": "code-gpt.showChatPanel",
-        "title": "Show Chat Panel"
+        "title": "Summon GPT"
+      },
+
+      {
+        "command": "code-gpt.toggleDarkMode",
+        "title": "Code-GPT: Toggle Dark Mode"
+      }
+    ],
+
+    "keybindings": [
+      {
+        "command": "code-gpt.toggleDarkMode",
+        "key": "ctrl+d"
       }
     ],
     "configuration": [
