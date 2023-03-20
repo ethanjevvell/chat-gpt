@@ -17,12 +17,16 @@
 
       {
         "command": "code-gpt.showChatPanel",
-        "title": "Summon GPT"
+        "title": "Code-GPT: Summon GPT"
       },
 
       {
         "command": "code-gpt.toggleDarkMode",
         "title": "Code-GPT: Toggle Dark Mode"
+      },
+      {
+       "command": "code-gpt.suggestImprovement",
+       "title": "Code-GPT: Suggest Improvement" 
       }
     ],
 
@@ -32,6 +36,7 @@
         "key": "ctrl+d"
       }
     ],
+
     "configuration": [
       {
         "title": "ChatGPT",
@@ -43,8 +48,22 @@
           }
         }
       }
-    ]
+    ],
+
+    "menus": {
+      "editor/context": [
+        {
+          "command": "code-gpt.toggleDarkMode"
+        },
+        {
+          "command": "code-gpt.suggestImprovement",
+          "when": "editorHasSelection"
+        }
+      ]
+    }
+
   },
+
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",

@@ -12,15 +12,13 @@ let months = [
   "November",
   "December",
 ];
+const vscode = acquireVsCodeApi();
 
 window.addEventListener("DOMContentLoaded", () => {
-  const vscode = acquireVsCodeApi();
   const promptArea = document.getElementById("inputMessage");
-
-  const toggleThemeButton = document.getElementById("toggleTheme");
   const messagesContainer = document.getElementById("chat");
 
-  // Click send button
+  // Press enter key
   promptArea.addEventListener("keydown", (event) => {
     if (event.code === "Enter") {
       const inputMessage = document.getElementById("inputMessage");
@@ -52,7 +50,10 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function createChatBlurb(role, time, content) {
-  const messagesContainer = document.getElementById("chat-messages");
+  const previousState = vscode.getState();
+  const messagesContainer = previousState
+    ? previousState.messagesContainer
+    : document.getElementById("chat-messages");
 
   const message = document.createElement("div");
   message.className = "message";
@@ -125,4 +126,10 @@ function processContentForCode(content, codeMatches) {
   }
 
   return processedContent;
+}
+
+// TO-DO: Implement save state
+function saveState() {
+  const messagesContainer = document.getElementById("chat-messages");
+  vscode.setState({ messagesContainer });
 }

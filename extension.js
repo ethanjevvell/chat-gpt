@@ -17,37 +17,42 @@ const openai = new OpenAIApi(configuration);
 const messages = [{ role: "system", content: "You are a helpful assistant." }];
 
 function activate(context) {
-  const panel = vscode.window.createWebviewPanel(
-    "code-GPT",
-    "Chat with GPT-3.5",
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-    }
-  );
+  var mainChatPanel;
 
+  // Begin disposables (commands)
   let showChatPanel = vscode.commands.registerCommand(
     "code-gpt.showChatPanel",
     function () {
-      panel.webview.html = getWebviewContent(panel.webview);
-
-      // Panel listeners:
-      panel.webview.onDidReceiveMessage(
-        async (message) => {
-          switch (message.command) {
-            case "callGPT":
-              const response = await callGPT(message.input);
-              panel.webview.postMessage({
-                command: "gptResponse",
-                response: response,
-              });
-              console.log(response);
-              break;
+      if (!mainChatPanel) {
+        mainChatPanel = vscode.window.createWebviewPanel(
+          "code-GPT",
+          "Chat with GPT-3.5",
+          vscode.ViewColumn.One,
+          {
+            enableScripts: true,
           }
-        },
-        undefined,
-        context.subscriptions
-      );
+        );
+        mainChatPanel.webview.html = getWebviewContent(mainChatPanel.webview);
+
+        // Panel listeners:
+        mainChatPanel.webview.onDidReceiveMessage(
+          async (message) => {
+            switch (message.command) {
+              case "callGPT":
+                const response = callGPT(message.input);
+                postChatResponse(response);
+                break;
+            }
+          },
+          undefined,
+          context.subscriptions
+        );
+
+        mainChatPanel.onDidDispose(function () {
+          mainChatPanel = undefined;
+        });
+      }
+      mainChatPanel.reveal(vscode.ViewColumn.One);
     }
   );
   context.subscriptions.push(showChatPanel);
@@ -55,13 +60,43 @@ function activate(context) {
   let toggleDarkMode = vscode.commands.registerCommand(
     "code-gpt.toggleDarkMode",
     function () {
-      panel.webview.postMessage({ command: "toggleDarkMode" });
+      mainChatPanel.webview.postMessage({ command: "toggleDarkMode" });
     }
   );
+  context.subscriptions.push(toggleDarkMode);
+
+  let suggestImprovement = vscode.commands.registerCommand(
+    "code-gpt.suggestImprovement",
+
+    async function () {
+      const editor = vscode.window.activeTextEditor;
+      const selection = editor.selection;
+      const selectedText = editor.document.getText(selection);
+
+      if (!mainChatPanel) {
+        vscode.commands.executeCommand("code-gpt.showChatPanel");
+      } else {
+        mainChatPanel.reveal(vscode.ViewColumn.One);
+      }
+
+      var completion_prompt =
+        "Suggest improvements for the following code. Be concise. \n";
+      const response = await callGPT(`${completion_prompt} ${selectedText}`);
+
+      postChatResponse(response);
+    }
+  );
+  context.subscriptions.push(suggestImprovement);
+
+  async function postChatResponse(response) {
+    mainChatPanel.webview.postMessage({
+      command: "gptResponse",
+      response: response,
+    });
+  }
 }
 
 // Submits API call to GPT-3.5
-
 async function callGPT(input) {
   if (input) {
     messages.push({ role: "user", content: input });
@@ -72,15 +107,17 @@ async function callGPT(input) {
     messages: messages,
   });
 
-  const assistant_reply = completion.data.choices[0].message.content;
-
   if (completion) {
+    const assistant_reply = completion.data.choices[0].message.content;
     messages.push({ role: "assistant", content: assistant_reply });
+    return assistant_reply;
+  } else {
+    console.log("Likely error with OpenAI API");
+    return undefined;
   }
-
-  return assistant_reply;
 }
 
+// Render webview
 function getWebviewContent(webview) {
   const chatHTMLPath = path.join(__dirname, "webview", "chat.html");
   const handlersPath = path.join(__dirname, "src", "handlers.js");
