@@ -41,12 +41,6 @@ function activate(context) {
                 const response = await callGPT(messageHistory, messageTime);
                 postChatResponse(response);
                 break;
-
-              case "refreshWebview":
-                mainChatPanel.postMessage({
-                  command: "refreshWebview",
-                });
-                break;
             }
           },
           undefined,
@@ -92,14 +86,6 @@ function activate(context) {
     }
   );
   context.subscriptions.push(suggestImprovement);
-
-  let refreshWebview = vscode.commands.registerCommand(
-    "chat-gpt.refreshWebview",
-    function () {
-      mainChatPanel.webview.html = getWebviewContent();
-    }
-  );
-  context.subscriptions.push(refreshWebview);
 
   async function postChatResponse(response) {
     mainChatPanel.webview.postMessage({
