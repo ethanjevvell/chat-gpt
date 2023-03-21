@@ -21,7 +21,6 @@ handlers.js: JavaScript file responsible for handling chat UI, message rendering
 
 # Installation
 
-Install the extension in Visual Studio Code.
 Configure the extension by adding your OpenAI API key in the settings.
 
 # Usage
