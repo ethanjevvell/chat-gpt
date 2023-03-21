@@ -18,11 +18,12 @@ let messages = [
   { role: "system", content: "You are a helpful assistant.", time: newDate() },
 ];
 
+let darkMode = false;
+
 window.addEventListener("DOMContentLoaded", () => {
-  updateChatWindow();
-  console.log(messages);
   const promptArea = document.getElementById("inputMessage");
   const messagesContainer = document.getElementById("chat");
+  updateChatWindow(messagesContainer);
 
   // Press enter key
   promptArea.addEventListener("keydown", (event) => {
@@ -40,9 +41,11 @@ window.addEventListener("DOMContentLoaded", () => {
         history: messages,
         time: message.time,
       });
+      showTypingIndicator();
 
       inputMessage.value = "";
-      vscode.setState({ messages });
+      vscode.setState({ messages: messages, mode: darkMode });
+      scrollToBottom(messagesContainer);
     }
   });
 
@@ -59,12 +62,15 @@ window.addEventListener("DOMContentLoaded", () => {
           time: newDate(),
         };
         messages.push(newMess);
+
+        removeTypingIndicator();
         createChatBlurb(newMess);
-        vscode.setState({ messages });
+        scrollToBottom(messagesContainer);
+        vscode.setState({ messages: messages, mode: darkMode });
         break;
 
       case "toggleDarkMode":
-        messagesContainer.classList.toggle("dark");
+        toggleDarkMode(messagesContainer);
         break;
     }
   });
@@ -149,15 +155,98 @@ function processContentForCode(content, codeMatches) {
   return processedContent;
 }
 
-function updateChatWindow() {
+function updateChatWindow(messagesContainer) {
   const state = vscode.getState();
   if (state) {
-    console.log(state.messages.length);
     const messageHistory = state.messages.slice(1);
 
     for (var mess of messageHistory) {
       messages.push(mess);
       createChatBlurb(mess);
     }
+
+    if (state.mode) {
+      // mode = true means user was last seen in dark mode
+      toggleDarkMode(messagesContainer);
+    }
   }
+}
+
+function scrollToBottom(element) {
+  const start = element.scrollTop;
+  const end = element.scrollHeight - element.clientHeight;
+  const change = end - start;
+  const duration = 500; // duration of the smooth scrolling, in milliseconds
+  let startTime = null;
+
+  function animateScroll(currentTime) {
+    if (!startTime) startTime = currentTime;
+    const progress = currentTime - startTime;
+    const ease = (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t); // easeInOutQuad easing function
+    const amountScrolled = ease(progress / duration) * change;
+
+    element.scrollTop = start + amountScrolled;
+
+    if (progress < duration) {
+      window.requestAnimationFrame(animateScroll);
+    }
+  }
+
+  window.requestAnimationFrame(animateScroll);
+}
+
+function showTypingIndicator() {
+  const typingIndicator = document.createElement("div");
+  typingIndicator.className = "message typing-indicator-container";
+  typingIndicator.setAttribute("id", "typingIndicator");
+
+  const messageHeader = document.createElement("div");
+  messageHeader.className = "message-header";
+
+  const messageRole = document.createElement("span");
+  messageRole.className = "message-role";
+  messageRole.textContent = "Assistant";
+
+  const messageTime = document.createElement("span");
+  messageTime.className = "message-time";
+  messageTime.textContent = "...";
+
+  const messageContainer = document.createElement("div");
+  messageContainer.className = "message-content";
+
+  const dot1 = document.createElement("span");
+  dot1.className = "typing-indicator";
+  dot1.style.animationDelay = "0s";
+  const dot2 = document.createElement("span");
+  dot2.className = "typing-indicator";
+  dot2.style.animationDelay = "0.2s";
+  const dot3 = document.createElement("span");
+  dot3.className = "typing-indicator";
+  dot3.style.animationDelay = "0.4s";
+
+  messageContainer.appendChild(dot1);
+  messageContainer.appendChild(dot2);
+  messageContainer.appendChild(dot3);
+
+  messageHeader.appendChild(messageRole);
+  messageHeader.appendChild(messageTime);
+  typingIndicator.appendChild(messageHeader);
+  typingIndicator.appendChild(messageContainer);
+
+  const messagesContainer = document.getElementById("chat-messages");
+  messagesContainer.appendChild(typingIndicator);
+  scrollToBottom(messagesContainer);
+}
+
+function removeTypingIndicator() {
+  const typingIndicator = document.getElementById("typingIndicator");
+  if (typingIndicator) {
+    typingIndicator.remove();
+  }
+}
+
+function toggleDarkMode(messagesContainer) {
+  messagesContainer.classList.toggle("dark");
+  darkMode = !darkMode;
+  vscode.setState({ messages: messages, mode: darkMode });
 }
