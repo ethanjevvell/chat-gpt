@@ -14,7 +14,12 @@ let months = [
 ];
 const vscode = acquireVsCodeApi();
 
+const messages = [
+  { role: "system", content: "You are a helpful assistant.", time: newDate() },
+];
+
 window.addEventListener("DOMContentLoaded", () => {
+  updateChatWindow();
   const promptArea = document.getElementById("inputMessage");
   const messagesContainer = document.getElementById("chat");
 
@@ -22,12 +27,19 @@ window.addEventListener("DOMContentLoaded", () => {
   promptArea.addEventListener("keydown", (event) => {
     if (event.code === "Enter") {
       const inputMessage = document.getElementById("inputMessage");
-      const message = inputMessage.value;
-
-      createChatBlurb("User", newDate(), message);
+      const content = inputMessage.value;
+      const message = { role: "user", content: content, time: newDate() };
+      messages.push(message);
+      createChatBlurb(message);
 
       // Send a message to the extension to call GPT
-      vscode.postMessage({ command: "callGPT", input: message }, "*");
+      // const assistant_message = callGPT(content);
+      vscode.postMessage({
+        command: "callGPT",
+        history: messages,
+        time: message.time,
+      });
+
       inputMessage.value = "";
     }
   });
@@ -38,22 +50,25 @@ window.addEventListener("DOMContentLoaded", () => {
 
     switch (message.command) {
       case "gptResponse":
-        const assistant_message = message.response;
-        createChatBlurb("GPT", newDate(), assistant_message);
+        const content = message.response.content;
+        const newMess = { role: "GPT", content: content, time: newDate() };
+        createChatBlurb(newMess);
         break;
 
       case "toggleDarkMode":
         messagesContainer.classList.toggle("dark");
         break;
+
+      case "refreshWebview":
+        for (var mess in messages) {
+          createChatBlurb(mess);
+        }
     }
   });
 });
 
-function createChatBlurb(role, time, content) {
-  const previousState = vscode.getState();
-  const messagesContainer = previousState
-    ? previousState.messagesContainer
-    : document.getElementById("chat-messages");
+function createChatBlurb(mess) {
+  let messagesContainer = document.getElementById("chat-messages");
 
   const message = document.createElement("div");
   message.className = "message";
@@ -63,23 +78,26 @@ function createChatBlurb(role, time, content) {
 
   const messageRole = document.createElement("span");
   messageRole.className = "message-role";
-  messageRole.textContent = role;
+  messageRole.textContent = mess.role === "user" ? "User" : "Assistant";
 
   const messageTime = document.createElement("span");
   messageTime.className = "message-time";
-  messageTime.textContent = time;
+  messageTime.textContent = mess.time;
 
   const messageContainer = document.createElement("div");
   messageContainer.className = "message-content";
 
   // Check if the response contains code
   const codePattern = /```([\s\S]*?)```/g;
-  const codeMatches = content.match(codePattern);
+  const codeMatches = mess.content.match(codePattern);
 
-  if (content.match(codePattern) !== null) {
-    messageContainer.innerHTML = processContentForCode(content, codeMatches);
+  if (mess.content.match(codePattern) !== null) {
+    messageContainer.innerHTML = processContentForCode(
+      mess.contentcontent,
+      codeMatches
+    );
   } else {
-    messageContainer.textContent = content;
+    messageContainer.textContent = mess.content;
   }
 
   messageHeader.appendChild(messageRole);
@@ -87,6 +105,8 @@ function createChatBlurb(role, time, content) {
   message.appendChild(messageHeader);
   message.appendChild(messageContainer);
   messagesContainer.appendChild(message);
+
+  return messagesContainer;
 }
 
 function newDate() {
@@ -128,8 +148,11 @@ function processContentForCode(content, codeMatches) {
   return processedContent;
 }
 
-// TO-DO: Implement save state
-function saveState() {
-  const messagesContainer = document.getElementById("chat-messages");
-  vscode.setState({ messagesContainer });
+function updateChatWindow() {
+  if (vscode.getState()) {
+    let hasMessages = vscode.getState().messageHistory;
+    vscode.postMessage({
+      command: "refreshWebview",
+    });
+  }
 }

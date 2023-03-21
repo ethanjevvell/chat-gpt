@@ -13,9 +13,6 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-// System message primes GPT with the context for how it should reply
-const messages = [{ role: "system", content: "You are a helpful assistant." }];
-
 function activate(context) {
   var mainChatPanel;
 
@@ -39,8 +36,16 @@ function activate(context) {
           async (message) => {
             switch (message.command) {
               case "callGPT":
-                const response = callGPT(message.input);
+                const messageHistory = message.history;
+                const messageTime = message.time;
+                const response = await callGPT(messageHistory, messageTime);
                 postChatResponse(response);
+                break;
+
+              case "refreshWebview":
+                mainChatPanel.postMessage({
+                  command: "refreshWebview",
+                });
                 break;
             }
           },
@@ -88,6 +93,14 @@ function activate(context) {
   );
   context.subscriptions.push(suggestImprovement);
 
+  let refreshWebview = vscode.commands.registerCommand(
+    "chat-gpt.refreshWebview",
+    function () {
+      mainChatPanel.webview.html = getWebviewContent();
+    }
+  );
+  context.subscriptions.push(refreshWebview);
+
   async function postChatResponse(response) {
     mainChatPanel.webview.postMessage({
       command: "gptResponse",
@@ -96,29 +109,8 @@ function activate(context) {
   }
 }
 
-// Submits API call to GPT-3.5
-async function callGPT(input) {
-  if (input) {
-    messages.push({ role: "user", content: input });
-  }
-
-  const completion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: messages,
-  });
-
-  if (completion) {
-    const assistant_reply = completion.data.choices[0].message.content;
-    messages.push({ role: "assistant", content: assistant_reply });
-    return assistant_reply;
-  } else {
-    console.log("Likely error with OpenAI API");
-    return undefined;
-  }
-}
-
 // Render webview
-function getWebviewContent(webview) {
+function getWebviewContent(webview, messageHistory) {
   const chatHTMLPath = path.join(__dirname, "webview", "chat.html");
   const handlersPath = path.join(__dirname, "src", "handlers.js");
   const stylesPath = path.join(__dirname, "src", "styles", "chat.css");
@@ -130,7 +122,41 @@ function getWebviewContent(webview) {
   HTMLContent = HTMLContent.replace("%handlers%", handlersURI);
   HTMLContent = HTMLContent.replace("%styles%", stylesURI);
 
+  if (messageHistory) {
+    HTMLContent = HTMLContent.replace(
+      "%chatHistory%",
+      messageHistory.messageHistory
+    );
+  } else {
+    HTMLContent = HTMLContent.replace("%chatHistory%", "");
+  }
+
   return HTMLContent;
+}
+
+async function callGPT(messages, time) {
+  // Remove the timestamp from each message, as OpenAI API
+  // Will not accept it in the messages param
+  // Note: It will be retained in handlers.js so
+  // messages have timestamps.
+
+  messages.map((element) => {
+    delete element.time;
+    return element;
+  });
+
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: messages,
+  });
+
+  let assistant_message = {
+    role: "assistant",
+    content: completion.data.choices[0].message.content.toString(),
+    time: time,
+  };
+
+  return assistant_message;
 }
 
 function deactivate() {}

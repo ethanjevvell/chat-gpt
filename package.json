@@ -12,31 +12,26 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-
     "commands": [
-
       {
         "command": "code-gpt.showChatPanel",
         "title": "Code-GPT: Summon GPT"
       },
-
       {
         "command": "code-gpt.toggleDarkMode",
         "title": "Code-GPT: Toggle Dark Mode"
       },
       {
-       "command": "code-gpt.suggestImprovement",
-       "title": "Code-GPT: Suggest Improvement" 
+        "command": "code-gpt.suggestImprovement",
+        "title": "Code-GPT: Suggest Improvement"
       }
     ],
-
     "keybindings": [
       {
         "command": "code-gpt.toggleDarkMode",
         "key": "ctrl+d"
       }
     ],
-
     "configuration": [
       {
         "title": "ChatGPT",
@@ -49,7 +44,6 @@
         }
       }
     ],
-
     "menus": {
       "editor/context": [
         {
@@ -61,24 +55,29 @@
         }
       ]
     }
-
   },
-
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "node ./test/runTest.js"
   },
   "devDependencies": {
+    "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.20.2",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
     "@types/vscode": "^1.76.0",
     "@vscode/test-electron": "^2.2.3",
+    "babel-loader": "^9.1.2",
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
+    "html-webpack-plugin": "^5.5.0",
     "mocha": "^10.2.0",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "webpack": "^5.76.2",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.13.1"
   },
   "dependencies": {
     "jquery": "^3.6.4",
