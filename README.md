@@ -1,65 +1,32 @@
-# code-gpt README
+# Code-GPT
 
-This is the README for your extension "code-gpt". After writing up a brief description, we recommend including the following sections.
+#### Video Demo: https://youtu.be/a3ck47Jf1oU
 
-## Features
+#### Description: Code-GPT is a custom extension for VS Code that assists the user with programming tasks.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+# Code-GPT
 
-For example if there is an image subfolder under your extension project workspace:
+<p>Code-GPT is a Visual Studio Code extension that enables you to chat with OpenAI's GPT-3.5-turbo directly within your editor. It allows you to ask questions, get code suggestions, and receive improvements on your code snippets.</p>
 
-\!\[feature X\]\(images/feature-x.png\)
+# Features
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Chat with GPT-3.5-turbo inside Visual Studio Code.
+Toggle dark mode for the chat panel. (ctr+d)
+Select a code snippet and ask for suggested improvements.
 
-## Requirements
+# Files
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+extension.js: The main JavaScript file that contains the logic for the extension.
+handlers.js: JavaScript file responsible for handling chat UI, message rendering, and communicating with the extension.
 
-## Extension Settings
+# Installation
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Install the extension in Visual Studio Code.
+Configure the extension by adding your OpenAI API key in the settings.
 
-For example:
+# Usage
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Use the code-gpt.showChatPanel command to open the chat panel.
+Type your message in the chat panel and press Enter to send it to GPT-3.5-turbo.
+Use the code-gpt.toggleDarkMode command to toggle between light and dark mode in the chat panel.
+Select a code snippet in your editor and use the code-gpt.suggestImprovement command to receive suggestions for improvements.
