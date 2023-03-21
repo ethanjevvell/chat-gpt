@@ -14,6 +14,13 @@ let months = [
 ];
 const vscode = acquireVsCodeApi();
 
+/*
+ * ON THE MESSAGES ARRAY:
+ *   The system message prepares the model for completions. Note that you can also
+ *   add your own "assistant" replies in the starting messages array to help show
+ *   the model what desireable behavior looks like.
+ */
+
 let messages = [
   { role: "system", content: "You are a helpful assistant.", time: newDate() },
 ];

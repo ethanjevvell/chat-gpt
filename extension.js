@@ -12,6 +12,7 @@ const configuration = new Configuration({
 });
 
 const openai = new OpenAIApi(configuration);
+let session_tokens = 0;
 
 function activate(context) {
   var mainChatPanel;
@@ -38,7 +39,11 @@ function activate(context) {
               case "callGPT":
                 const messageHistory = message.history;
                 const messageTime = message.time;
-                const response = await callGPT(messageHistory, messageTime);
+                const completion = await callGPT(messageHistory, messageTime);
+
+                const response = completion.message;
+                const tokens = completion.total_tokens;
+
                 postChatResponse(response);
                 break;
             }
@@ -80,7 +85,10 @@ function activate(context) {
 
       var completion_prompt =
         "Suggest improvements for the following code. Be concise. \n";
-      const response = await callGPT(`${completion_prompt} ${selectedText}`);
+      const completion = await callGPT(`${completion_prompt} ${selectedText}`);
+
+      const response = completion.message;
+      const tokens = completion.total_tokens;
 
       postChatResponse(response);
     }
@@ -136,13 +144,22 @@ async function callGPT(messages, time) {
     messages: messages,
   });
 
-  let assistant_message = {
+  const assistant_message = {
     role: "assistant",
     content: completion.data.choices[0].message.content.toString(),
     time: time,
   };
 
-  return assistant_message;
+  const tokens_used = completion.data.usage.total_tokens;
+  session_tokens += tokens_used;
+
+  console.clear();
+  console.log(`Session tokens: ${session_tokens}`);
+
+  let cost = ((0.002 / 1000) * session_tokens).toFixed(4);
+  console.log(`Estimated cost: $${cost}`);
+
+  return { message: assistant_message, total_tokens: tokens_used };
 }
 
 function deactivate() {}
