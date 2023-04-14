@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+submit50 = "*"
 
 [dev-packages]
 
