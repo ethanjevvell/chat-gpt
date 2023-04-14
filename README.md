@@ -2,7 +2,7 @@
 
 #### Video Demo: https://youtu.be/a3ck47Jf1oU
 
-#### Description: Code-GPT is a custom extension for VS Code that assists the user with programming tasks.
+#### Description: Code-GPT is a custom extension for VS Code that assists the user with programming tasks. The end goal is to integrate an AI programming assistant into the development environment for educational purposes.
 
 # Code-GPT
 
